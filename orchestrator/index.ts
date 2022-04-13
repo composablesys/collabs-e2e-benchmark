@@ -21,14 +21,6 @@ import {
 
     const dnetCloud = new AzureCloud();
 
-    const neededServerImages: string[] = [config.browserImage];
-    const neededClientImages: string[] = [config.browserImage];
-    for (const subjectName of config.subjects) {
-      const subject = config.subjectsDefs[subjectName];
-      neededServerImages.push(subject.server);
-      neededServerImages.push(subject.web);
-    }
-
     //const vms: string[] = []
     process.on("SIGINT", async () => {
       process.exit();
@@ -88,9 +80,9 @@ import {
           );
           let images: string[];
           if (id === 0) {
-            images = neededServerImages;
+            images = [config.serverImage, config.browserImage];
           } else {
-            images = neededClientImages;
+            images = [config.browserImage];
           }
           await Promise.all(
             images.map(async (image) => {
@@ -123,7 +115,6 @@ import {
           for (const numberOfClients of config.params.numberOfClients) {
             for (const scenario of config.params.scenario) {
               for (const subjectName of config.subjects) {
-                const subject = config.subjectsDefs[subjectName];
                 const testDir = path.join(
                   "/data",
                   `test-${numberOfObjects}-${numberOfClients}-${scenario}-${subjectName}`
@@ -147,7 +138,7 @@ import {
 
                 console.log(new Date().toISOString(), "Starting server...");
                 const serverContainer = await serverVM.docker.createContainer({
-                  Image: subject.server,
+                  Image: config.serverImage,
                   HostConfig: {
                     PortBindings: {
                       "8081/tcp": [{ HostPort: "8081" }],
@@ -171,7 +162,7 @@ import {
 
                 console.log(new Date().toISOString(), "Starting web...");
                 const webContainer = await serverVM.docker.createContainer({
-                  Image: subject.web,
+                  Image: config.browserImage,
                   HostConfig: {
                     PortBindings: {
                       "80/tcp": [{ HostPort: "8080" }],
@@ -187,13 +178,14 @@ import {
                   new Date().toISOString(),
                   "Starting init browser..."
                 );
-                const initBrowserContainer =
-                  await serverVM.docker.createContainer({
+                const initBrowserContainer = await serverVM.docker.createContainer(
+                  {
                     Image: config.browserImage,
                     Env: [
-                      `URL=http://${serverVM.ip}:8080?add=${numberOfObjects}&nogui`,
+                      `URL=http://${serverVM.ip}:8080?add=${numberOfObjects}&nogui&framework=${subjectName}`,
                     ],
-                  });
+                  }
+                );
                 await initBrowserContainer.start();
                 collectStats(
                   initBrowserContainer,
@@ -220,13 +212,14 @@ import {
                       return await Promise.all(
                         [...new Array(numContainersPerClient).keys()].map(
                           async (id) => {
-                            const clientContainer =
-                              await clientVM.docker.createContainer({
+                            const clientContainer = await clientVM.docker.createContainer(
+                              {
                                 Image: config.browserImage,
                                 Env: [
-                                  `URL=http://${serverVM.ip}:8080?shuffle_rate=${config.params.rate}&shuffle_multiplier=1&shuffle_time=${config.params.duration}&shuffle_delay=60&nogui`,
+                                  `URL=http://${serverVM.ip}:8080?shuffle_rate=${config.params.rate}&shuffle_multiplier=1&shuffle_time=${config.params.duration}&shuffle_delay=60&nogui&framework=${subjectName}`,
                                 ],
-                              });
+                              }
+                            );
                             await clientContainer.start();
                             collectStats(
                               clientContainer,
@@ -321,13 +314,6 @@ import {
 
     const dnetCloud = new AzureCloud();
 
-    const neededImages: string[] = [config.browserImage];
-    for (const subjectName of config.subjects) {
-      const subject = config.subjectsDefs[subjectName];
-      neededImages.push(subject.server);
-      neededImages.push(subject.web);
-    }
-
     process.on("SIGINT", async () => {
       process.exit();
     });
@@ -377,6 +363,8 @@ import {
         await oldContainer.remove();
       }
 
+      const neededImages = [config.serverImage, config.browserImage];
+
       console.log(
         new Date().toISOString(),
         `[${name}@${ip}] Pulling docker images...`
@@ -400,7 +388,6 @@ import {
       for (let i = 0; i < config.numberOfRuns; i++) {
         for (const numberOfObjects of config.params.numberOfObjects) {
           for (const subjectName of config.subjects) {
-            const subject = config.subjectsDefs[subjectName];
             const testDir = path.join(
               "/data",
               `test-extra-${numberOfObjects}-${subjectName}`
@@ -422,7 +409,7 @@ import {
 
             console.log(new Date().toISOString(), "Starting server...");
             const serverContainer = await docker.createContainer({
-              Image: subject.server,
+              Image: config.serverImage,
               HostConfig: {
                 PortBindings: {
                   "8081/tcp": [{ HostPort: "8081" }],
@@ -442,7 +429,7 @@ import {
 
             console.log(new Date().toISOString(), "Starting web...");
             const webContainer = await docker.createContainer({
-              Image: subject.web,
+              Image: config.browserImage,
               HostConfig: {
                 PortBindings: {
                   "80/tcp": [{ HostPort: "8080" }],
@@ -457,7 +444,9 @@ import {
             console.log(new Date().toISOString(), "Starting init browser...");
             const initBrowserContainer = await docker.createContainer({
               Image: config.browserImage,
-              Env: [`URL=http://${ip}:8080?add=${numberOfObjects}&nogui`],
+              Env: [
+                `URL=http://${ip}:8080?add=${numberOfObjects}&nogui&framework=${subjectName}`,
+              ],
             });
             await initBrowserContainer.start();
             collectLogs(initBrowserContainer, path.join(logsDir, "init.txt"));
@@ -479,7 +468,7 @@ import {
                   const clientContainer = await docker.createContainer({
                     Image: config.browserImage,
                     Env: [
-                      `URL=http://${ip}:8080?shuffle_rate=250&shuffle_time=600&shuffle_delay=10&nogui`,
+                      `URL=http://${ip}:8080?shuffle_rate=250&shuffle_time=600&shuffle_delay=10&nogui&framework=${subjectName}`,
                     ],
                   });
                   await clientContainer.start();

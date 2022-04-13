@@ -33,6 +33,7 @@
     "webpack-cli": "^4.8.0"
   },
   "scripts": {
+    "start": "npm run $FRAMEWORK",
     "yjs": "npm run static & npm run yjs-ws",
     "static": "node build/server/static.js",
     "yjs-ws": "cross-env PORT=8081 y-websocket",

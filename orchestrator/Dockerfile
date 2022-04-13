@@ -1,9 +1,11 @@
-FROM node:12.0.0-alpine
+FROM node:16-alpine
 
-COPY test/orchestrator/package.json /package.json
+# This doesn't seem needed unless we move files around?
+# COPY test/orchestrator/package.json /package.json
 
-RUN cd / && yarn install
+RUN cd / && npm ci
 
-COPY dist/orchestrator/index.js /index.js
+# Shouldn't be necessary since we removed the ts-to-js build step.
+# COPY dist/orchestrator/index.js /index.js
 
-ENTRYPOINT ["node", "/index.js", "/config.json"]
+ENTRYPOINT ["npm", "start"]

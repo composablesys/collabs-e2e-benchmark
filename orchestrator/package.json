@@ -4,6 +4,14 @@
   "private": true,
   "dependencies": {
     "@azure/ms-rest-nodeauth": "1.0.1",
-    "dockerode": "2.5.8"
+    "@types/dockerode": "^2.5.8",
+    "@types/node": "^17.0.23",
+    "@types/node-fetch": "^2.6.1",
+    "dockerode": "2.5.8",
+    "node-fetch": "^2.6.7",
+    "ts-node": "^10.7.0"
+  },
+  "scripts": {
+    "start": "ts-node index.ts config.json"
   }
 }

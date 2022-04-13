@@ -41,7 +41,7 @@ export class AzureCloud {
       console.error(await response1.text());
       throw Error(response1.statusText);
     }
-    const network = await response1.json();
+    const network: any = await response1.json();
 
     const response = await this.fetch(
       `https://management.azure.com/subscriptions/${SUBSCRIPTION_ID}/resourceGroups/${RESOURCE_GROUP_NAME}/providers/Microsoft.Compute/virtualMachines/${name}?api-version=2018-06-01`,
@@ -97,7 +97,7 @@ export class AzureCloud {
       console.error(await response.text());
       throw Error(response.statusText);
     }
-    const servers = await response.json();
+    const servers: any = await response.json();
     for (const vm of servers.value) {
       if (vm.name === name) {
         return vm.name; // id == name
@@ -119,7 +119,7 @@ export class AzureCloud {
       console.error(await response.text());
       throw Error(response.statusText);
     }
-    const server = await response.json();
+    const server: any = await response.json();
     const networkID = server.properties.networkProfile.networkInterfaces[0].id;
     const parts = networkID.split("/");
     const interfaceName = parts[parts.length - 1];
@@ -134,7 +134,7 @@ export class AzureCloud {
         console.error(await response.text());
         throw Error(response.statusText);
       }
-      const server = await response.json();
+      const server: any = await response.json();
       if (server.properties.provisioningState === "Succeeded") {
         ip = server.properties.privateIPAddress;
       }

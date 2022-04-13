@@ -8,6 +8,7 @@ RUN apt update \
 
 RUN cd / && yarn add puppeteer-core
 
-COPY test/browser/index.js /index.js
+# This doesn't seem needed unless we move files around?
+# COPY test/browser/index.js /index.js
 
 ENTRYPOINT ["node", "/index.js"]
