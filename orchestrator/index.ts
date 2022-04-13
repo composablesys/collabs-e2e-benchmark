@@ -151,6 +151,7 @@ import {
                     "8000/tcp": {},
                     "443/tcp": {},
                   },
+                  Env: [`FRAMEWORK=${subjectName}`],
                 });
                 await serverContainer.start();
                 collectStats(
@@ -422,7 +423,7 @@ import {
                 "8000/tcp": {},
                 "443/tcp": {},
               },
-              Env: ["DATA_DUMP=1"],
+              Env: ["DATA_DUMP=1", `FRAMEWORK=${subjectName}`],
             });
             await serverContainer.start();
             collectLogs(serverContainer, path.join(logsDir, "server.txt"));
