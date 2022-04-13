@@ -1,0 +1,9 @@
+{
+  "name": "orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@azure/ms-rest-nodeauth": "1.0.1",
+    "dockerode": "2.5.8"
+  }
+}
