@@ -1,5 +1,5 @@
 import "@material/mwc-button";
-import fabric from "fabric/fabric-impl";
+import { fabric } from "fabric";
 import { Circle } from "./shapes/circle";
 import { Rect } from "./shapes/rect";
 import { getRandomColor } from "./util/color";
@@ -144,16 +144,25 @@ export abstract class SyncFramework {
       const i = Math.floor(Math.random() * this.objects.size);
       const obj = Array.from(this.objects.values())[i];
 
+      // obj.get/set are broken by
+      // https://github.com/microsoft/TypeScript/issues/33591
+      // even though they work on both Rect and Circle and obj is Rect | Circle.
+      // For now, we just ignore them.
+
+      // @ts-ignore
       const horizontal = this.canvas.getWidth() - obj.get("width")! - 20;
+      // @ts-ignore
       const vertical = this.canvas.getHeight() - obj.get("height")! - 20;
 
       if (Math.random() > 0.5) {
         const newLeft = Math.floor(Math.random() * horizontal) + 10;
+        // @ts-ignore
         obj.set("left", newLeft);
         console.log(`S ${obj.id}.left ${newLeft}`);
         this.updateObject(obj.id, obj.toObject());
       } else {
         const newTop = Math.floor(Math.random() * vertical) + 10;
+        // @ts-ignore
         obj.set("top", newTop);
         console.log(`S ${obj.id}.top ${newTop}`);
         this.updateObject(obj.id, obj.toObject());
@@ -203,7 +212,9 @@ export abstract class SyncFramework {
       const o1 = this.objects.get(id)!;
       let ok = true;
       for (const k of Object.keys(obj)) {
+        // @ts-ignore
         if (o1.get(k as any) !== obj[k]) {
+          // @ts-ignore
           o1.set(k as any, obj[k]);
           console.log(`C ${id}.${k} ${obj[k]}`);
           ok = false;
@@ -237,10 +248,3 @@ export abstract class SyncFramework {
     this.canvas.fxRemove(this.objects.get(id)!);
   }
 }
-
-(window as any).WebComponents = {
-  ready: true,
-};
-document.dispatchEvent(
-  new CustomEvent("WebComponentsReady", { bubbles: true })
-);
