@@ -1,14 +1,14 @@
-FROM node:12.0.0-stretch-slim
+FROM node:16-stretch-slim
 
-RUN apt update \
-    && apt upgrade -y \
-    && apt install -y chromium iproute2 --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /src/*.deb
+WORKDIR /usr/src/app
 
-RUN cd / && yarn add puppeteer-core
+COPY package*.json ./
 
-# This doesn't seem needed unless we move files around?
-# COPY test/browser/index.js /index.js
+RUN npm install
+
+COPY . .
+
+# # Nothing to build this time.
+# RUN npm run build
 
 ENTRYPOINT ["node", "/index.js"]
