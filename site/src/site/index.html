@@ -29,30 +29,6 @@
       href="https://fonts.googleapis.com/css?family=Roboto:500"
       rel="stylesheet"
     />
-    <script>
-      window.wsTimeout = 10 * 1000;
-      const realWebSocket = window.WebSocket;
-      window.WebSocket = function (...args) {
-        let timeout = 0;
-        const socket = new realWebSocket(...args);
-        socket.addEventListener("message", () => {
-          console.log("SOCKET_RECV");
-          if (timeout !== 0) {
-            clearTimeout(timeout);
-          }
-          timeout = setTimeout(() => {
-            if ("reconnect" in socket) {
-              socket.reconnect();
-            } else {
-              socket.close();
-            }
-          }, window.wsTimeout);
-        });
-        return socket;
-      };
-      window.WebSocket.OPEN = 1;
-      window.WebSocket.CLOSING = 2;
-    </script>
   </head>
   <body>
     <div id="menu">

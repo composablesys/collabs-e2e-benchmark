@@ -1,5 +1,5 @@
 // type Frameworks = 'owebsync' | 'sharedb' | 'yjs' | 'automerge' | 'sharedb'
-type Frameworks = "yjs"; // TODO: all frameworks
+type Frameworks = "yjs" | "collabs"; // TODO: all frameworks
 
 export interface Config {
   numberOfRuns: number;

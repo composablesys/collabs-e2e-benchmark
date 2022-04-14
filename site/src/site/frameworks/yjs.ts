@@ -12,7 +12,8 @@ export class YjsFramework extends SyncFramework {
     this.doc = new Y.Doc();
     this.drawing1 = this.doc.getMap("drawing1");
 
-    new WebsocketProvider(wsURL, "", this.doc);
+    const wsProvider = new WebsocketProvider(wsURL, "", this.doc);
+    wsProvider.shouldConnect = true;
 
     this.drawing1.observe((event) =>
       event.keys.forEach((change, key) => {
@@ -30,7 +31,6 @@ export class YjsFramework extends SyncFramework {
   }
 
   private notifyObjectChangedKey(key: string) {
-    console.log("notifying: " + key);
     this.notifyObjectChanged(
       key,
       Object.fromEntries(this.drawing1.get(key)!.entries())
@@ -38,7 +38,6 @@ export class YjsFramework extends SyncFramework {
   }
 
   protected addObject(id: string, obj: any): void {
-    console.log("add: " + id + "," + JSON.stringify(obj));
     this.doc.transact(() => {
       const objMap = new Y.Map<unknown>();
       this.drawing1.set(id, objMap);

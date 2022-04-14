@@ -1,5 +1,6 @@
 // import { OWebSyncFramework } from "./frameworks/owebsync";
 
+import { CollabsFramework } from "./frameworks/collabs";
 import { YjsFramework } from "./frameworks/yjs";
 import { SyncFramework } from "./sync_framework";
 
@@ -15,13 +16,14 @@ document.dispatchEvent(
 const WS_PORT = 8081;
 const wsProtocol = location.protocol.replace(/^http/, "ws");
 const wsURL = wsProtocol + "//" + location.hostname + ":" + WS_PORT;
-console.log("wsURL: " + wsURL);
+// console.log("wsURL: " + wsURL);
 
 // Construct and start the SyncFramework indicated by the "framework"
 // URL param.
 const FRAMEWORKS = {
   // owebsync: OWebSyncFramework,
   yjs: YjsFramework,
+  collabs: CollabsFramework,
 };
 
 const searchParams = new URLSearchParams(window.location.search);
