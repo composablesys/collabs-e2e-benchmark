@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    io.kompose.service: client
+  name: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: client
+  template:
+    metadata:
+      labels:
+        io.kompose.service: client
+    spec:
+      containers:
+        - image: cmeiklejohn/collabs-client:latest
+          name: client
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
