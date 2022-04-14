@@ -1,5 +1,5 @@
 // import { OWebSyncFramework } from "./frameworks/owebsync";
-
+import { AutomergeFramework } from "./frameworks/automerge";
 import { CollabsFramework } from "./frameworks/collabs";
 import { YjsFramework } from "./frameworks/yjs";
 import { SyncFramework } from "./sync_framework";
@@ -24,6 +24,7 @@ const FRAMEWORKS = {
   // owebsync: OWebSyncFramework,
   yjs: YjsFramework,
   collabs: CollabsFramework,
+  automerge: AutomergeFramework,
 };
 
 const searchParams = new URLSearchParams(window.location.search);
