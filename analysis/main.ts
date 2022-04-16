@@ -5,15 +5,17 @@ import * as math from "mathjs";
 
 const MAIN_FOLDER = "../data/logs-long";
 const LENGTH_SEC = 60;
-const BUFFER_SEC = 5; // Need at least this many sec after the end
+const BUFFER_SEC = 10; // Need at least this many sec after the end
 const TIME_VAR_SEC = 5; // Will accept measurements up to this many seconds late
+// The max latency we will report.
+const MAX_LATENCY_MS = 10000;
 
 // Processed stats for a single client.
-type Stats = {
+interface Stats {
   cpuUsage: number; // %
   netBytes: number; // Total bytes sent + received
   netInterval: number; // netBytes interval in sec
-};
+}
 
 let lib: string;
 let numUsers: number;
@@ -22,40 +24,60 @@ let numObjects: number;
 (async function () {
   const args = process.argv.slice(2);
 
-  // Args: <outFile> <lib> <numUsers> <numObjects>
+  // Args: <outFile> <lib> <numUsers> <numObjects> <trials to keep>
   // e.g. collabs 2 20
-  if (args.length !== 4) {
+  if (args.length !== 5) {
     throw new Error("wrong # args");
   }
   const outFile = args[0];
   lib = args[1];
   numUsers = parseInt(args[2]);
   numObjects = parseInt(args[3]);
+  const trialsToKeep = parseInt(args[4]);
 
   const bench = lib + "_" + numUsers + "_" + numObjects;
 
   const statss: Stats[] = [];
+  const latencies: number[] = []; // In ms
 
+  let successfulTrials = 0;
+  let unaccounted = 0;
   for (let trial = 1; trial <= 10; trial++) {
     console.log("\n**********\nTRIAL: " + trial + "\n*********\n");
     const subfolder = bench + "_" + trial;
-    const trialStatss = await getTrialData(subfolder);
-    if (trialStatss !== null) statss.push(...trialStatss);
+    const result = await getTrialData(subfolder);
+    if (result !== null) {
+      statss.push(...result[0]);
+      for (const lat of result[1]) latencies.push(lat);
+      unaccounted += result[2];
+      successfulTrials++;
+      if (successfulTrials === trialsToKeep) break;
+    }
   }
 
   // Compute summary statistics.
   // - # clients
   // - CPU usage: mean, stddev
   // - Network usage: mean, stddev
+  // - Percentile latencies (nearest rank)
   const cpuUsages = statss.map((value) => value.cpuUsage);
   const netUsages = statss.map((value) => value.netBytes / value.netInterval);
+  latencies.sort((a, b) => a - b);
+  const perLen = latencies.length / 100;
   const results = {
     lib,
     numUsers,
     numObjects,
     count: statss.length,
-    cpuUsage: summarize(cpuUsages),
-    netUsage: summarize(netUsages),
+    cpuUsage: summarize(cpuUsages), // %
+    netUsage: summarize(netUsages), // bytes/sec
+    l50: latencies[Math.ceil(perLen * 50) - 1],
+    l90: latencies[Math.ceil(perLen * 90) - 1],
+    l95: latencies[Math.ceil(perLen * 95) - 1],
+    l98: latencies[Math.ceil(perLen * 98) - 1],
+    l99: latencies[Math.ceil(perLen * 99) - 1],
+    l100: latencies[latencies.length - 1],
+    latUnaccounted: (100 * unaccounted) / latencies.length, // %
   };
   console.log("\n**********\nRESULTS:\n*********\n");
   console.log(results);
@@ -72,7 +94,9 @@ function summarize(values: number[]): any {
   };
 }
 
-async function getTrialData(subfolder: string): Promise<Stats[] | null> {
+async function getTrialData(
+  subfolder: string
+): Promise<[Stats[], number[], number] | null> {
   const client1Files: string[] = [];
   for (const fileName of fs.readdirSync(path.join(MAIN_FOLDER, subfolder))) {
     if (fileName.startsWith("client-1-")) client1Files.push(fileName);
@@ -175,7 +199,103 @@ async function getTrialData(subfolder: string): Promise<Stats[] | null> {
     statss.push(stats);
   }
 
-  return statss;
+  // 4. Calculate end-to-end latencies for all ops sent during the
+  // valid period.
+  const [latencies, unaccounted] = await getLatencies(
+    subfolder,
+    validClient1Files,
+    allStartDate,
+    measuredEndDate
+  );
+
+  return [statss, latencies, unaccounted];
+}
+
+interface OpDates {
+  sends: number[]; // Date.getTime(), so in ms
+  receives: number[]; // Date.getTime(), so in ms
+}
+
+async function getLatencies(
+  subfolder: string,
+  validClient1Files: string[],
+  startDate: Date,
+  endDate: Date
+): Promise<[number[], number]> {
+  const startTime = startDate.getTime();
+  const endTime = endDate.getTime();
+
+  // Maps an op's key "UID.side num" to its dates.
+  // Note keys are not necessarily unique; will have to tease them
+  // out later.
+  const ops = new Map<string, OpDates>();
+  for (const file of validClient1Files) {
+    await eachLine(path.join(MAIN_FOLDER, subfolder, file), (line) => {
+      if (line.startsWith("APP ")) {
+        const split = line.split(" ");
+        const date = new Date(split[1]);
+        const key = split[3] + " " + split[4];
+        const type = split[2];
+
+        let op = ops.get(key);
+        if (op === undefined) {
+          op = { sends: [], receives: [] };
+          ops.set(key, op);
+        }
+        if (type === "S") op.sends.push(date.getTime());
+        else op.receives.push(date.getTime());
+      }
+    });
+  }
+
+  // For each op, calculate receive latencies.
+  // Since keys are not necessarily unique but collisions are usually
+  // spaced out in time,
+  // we assume that the next receive after a send is for the exact
+  // same op.
+  // Also, we only consider sends within the valid period.
+  const latencies: number[] = []; // In ms.
+  let totalUnaccounted = 0;
+  for (const [key, op] of ops) {
+    op.sends.sort((a, b) => a - b);
+    let validSends = 0;
+    for (const send of op.sends) {
+      if (startTime <= send && send < endTime) {
+        validSends++;
+      }
+    }
+
+    const opLatencies: number[] = [];
+    for (const receive of op.receives) {
+      // Find the last send < receive.
+      // There may be none, if the op was sent before the valid window.
+      for (let i = op.sends.length - 1; i >= 0; i--) {
+        if (op.sends[i] < receive) {
+          // Only record if the send is in the valid period.
+          // Also, only record if it is within MAX_LATENCY_MS - otherwise
+          // assume the op was lost and we are seeing a later collision.
+          if (startTime <= op.sends[i] && op.sends[i] < endTime) {
+            const latency = receive - op.sends[i];
+            if (latency <= MAX_LATENCY_MS) opLatencies.push(latency);
+          }
+          break;
+        }
+      }
+    }
+
+    const expected = validSends * (numUsers - 1);
+    const unaccounted = expected - opLatencies.length;
+    if (unaccounted > 0) {
+      totalUnaccounted += unaccounted;
+      for (let i = 0; i < unaccounted; i++) {
+        opLatencies.push(MAX_LATENCY_MS);
+      }
+    }
+
+    for (const opLatency of opLatencies) latencies.push(opLatency);
+  }
+
+  return [latencies, totalUnaccounted];
 }
 
 function getNet(rawNet: any): { inputBytes: number; outputBytes: number } {
@@ -186,11 +306,11 @@ function getNet(rawNet: any): { inputBytes: number; outputBytes: number } {
   return rawNet[1];
 }
 
-type RawStats = {
+interface RawStats {
   cpu: any;
   mem: any;
   net: any;
-};
+}
 
 /**
  * Returns CPU, memory, and network stats for the given client
