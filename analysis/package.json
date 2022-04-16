@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@types/line-reader": "^0.0.34",
+    "@types/mathjs": "^9.4.2",
+    "line-reader": "^0.4.0",
+    "mathjs": "^10.4.3",
+    "ts-node": "^10.7.0"
+  },
+  "scripts": {
+    "start": "ts-node main.ts"
+  }
+}
