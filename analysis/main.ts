@@ -71,7 +71,12 @@ let numObjects: number;
     count: statss.length,
     cpuUsage: summarize(cpuUsages), // %
     netUsage: summarize(netUsages), // bytes/sec
+    l0: latencies[0],
+    l1: latencies[Math.ceil(perLen * 1) - 1],
+    l10: latencies[Math.ceil(perLen * 10) - 1],
+    l25: latencies[Math.ceil(perLen * 25) - 1],
     l50: latencies[Math.ceil(perLen * 50) - 1],
+    l75: latencies[Math.ceil(perLen * 75) - 1],
     l90: latencies[Math.ceil(perLen * 90) - 1],
     l95: latencies[Math.ceil(perLen * 95) - 1],
     l98: latencies[Math.ceil(perLen * 98) - 1],
