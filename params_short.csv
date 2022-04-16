@@ -1,0 +1,3 @@
+collabs_100_2000_short,collabs,100,http://${IP}:8080?add=2000&framework=collabs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=collabs
+yjs_100_2000_short,yjs,100,http://${IP}:8080?add=2000&framework=yjs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=yjs
+automerge_100_2000_short,automerge,100,http://${IP}:8080?add=2000&framework=automerge&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=automerge

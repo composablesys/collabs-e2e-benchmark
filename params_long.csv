@@ -1,0 +1,12 @@
+collabs_2_20,collabs,2,http://${IP}:8080?add=20&framework=collabs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=collabs&nogui
+collabs_2_2000,collabs,2,http://${IP}:8080?add=2000&framework=collabs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=collabs&nogui
+collabs_100_20,collabs,100,http://${IP}:8080?add=20&framework=collabs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=collabs&nogui
+collabs_100_2000,collabs,100,http://${IP}:8080?add=2000&framework=collabs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=collabs&nogui
+yjs_2_20,yjs,2,http://${IP}:8080?add=20&framework=yjs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=yjs&nogui
+yjs_2_2000,yjs,2,http://${IP}:8080?add=2000&framework=yjs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=yjs&nogui
+yjs_100_20,yjs,100,http://${IP}:8080?add=20&framework=yjs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=yjs&nogui
+yjs_100_2000,yjs,100,http://${IP}:8080?add=2000&framework=yjs&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=yjs&nogui
+automerge_2_20,automerge,2,http://${IP}:8080?add=20&framework=automerge&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=automerge&nogui
+automerge_2_2000,automerge,2,http://${IP}:8080?add=2000&framework=automerge&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=automerge&nogui
+automerge_100_20,automerge,100,http://${IP}:8080?add=20&framework=automerge&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=automerge&nogui
+automerge_100_2000,automerge,100,http://${IP}:8080?add=2000&framework=automerge&nogui,http://${IP}:8080?shuffle_rate=1000&shuffle_multiplier=1&shuffle_time=600&shuffle_delay=60&framework=automerge&nogui
